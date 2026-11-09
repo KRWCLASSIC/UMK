@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>UMK</RootNamespace>
+    <AssemblyName>umk</AssemblyName>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+
+    <!-- NuGet Global Tool Configuration -->
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>umk</ToolCommandName>
+    <PackageId>KRWCLASSIC.UMK</PackageId>
+    <Version>0.1.1</Version>
+    <Authors>KRWCLASSIC</Authors>
+    <Description>A CLI-only, shell-driven project configurator and task runner for Unity mod development, primarily targeting BepInEx.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/KRWCLASSIC/UMK</RepositoryUrl>
+    <PackageTags>unity;modding;bepinex;cli;task-runner</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+</Project>
+

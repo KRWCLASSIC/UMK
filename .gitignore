@@ -1,0 +1,22 @@
+# Build outputs
+bin/
+obj/
+
+# NuGet packaging outputs
+*.nupkg
+*.snupkg
+
+# IDE and tooling caches
+.vs/
+.vscode/
+.idea/
+.cache/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# OS files
+Thumbs.db
+[Dd]esktop.ini
+
