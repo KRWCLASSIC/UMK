@@ -13,7 +13,7 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>umk</ToolCommandName>
     <PackageId>KRWCLASSIC.UMK</PackageId>
-    <Version>0.1.1</Version>
+    <Version>0.1.2</Version>
     <Authors>KRWCLASSIC</Authors>
     <Description>A CLI-only, shell-driven project configurator and task runner for Unity mod development, primarily targeting BepInEx.</Description>
     <PackageReadmeFile>README.md</PackageReadmeFile>
