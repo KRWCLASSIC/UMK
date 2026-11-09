@@ -1,4 +1,4 @@
-# UMK — Unity Mod Kit
+# UMK — Unity Modding Kit
 
 <div align="center">
 
