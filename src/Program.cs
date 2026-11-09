@@ -36,6 +36,9 @@ public static class Program
                 case CliCommandKind.Setup:
                     return SetupCommand.Run(parsed.ManifestPath);
 
+                case CliCommandKind.Upgrade:
+                    return UpgradeCommand.Run(parsed.ManifestPath);
+
                 case CliCommandKind.LinkGameLibs:
                     return GameLibsLinker.Execute(parsed.ManifestPath);
 

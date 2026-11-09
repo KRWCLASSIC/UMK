@@ -8,6 +8,7 @@ public enum CliCommandKind
     Version,
     Init,
     Setup,
+    Upgrade,
     List,
     LinkGameLibs,
     RunScript

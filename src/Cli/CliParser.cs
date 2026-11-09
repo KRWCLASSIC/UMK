@@ -104,6 +104,17 @@ public static class CliParser
             return new CliArguments(CliCommandKind.Setup, ManifestPath: manifestPath);
         }
 
+        if (primary.Equals("upgrade", StringComparison.OrdinalIgnoreCase))
+        {
+            if (positionals.Count > 1)
+            {
+                throw new UmkException(
+                    "Unexpected arguments after 'upgrade'. Usage: umk upgrade",
+                    UmkExitCode.UsageError);
+            }
+            return new CliArguments(CliCommandKind.Upgrade, ManifestPath: manifestPath);
+        }
+
         if (primary.Equals("list", StringComparison.OrdinalIgnoreCase))
         {
             if (positionals.Count > 1)

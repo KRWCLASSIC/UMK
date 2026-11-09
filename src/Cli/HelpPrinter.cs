@@ -8,18 +8,19 @@ public static class HelpPrinter
 {
     public static int PrintVersion()
     {
-        Console.WriteLine($"UMK (Unity Mod Kit) v{VersionChecker.CurrentVersionString}");
+        Console.WriteLine($"UMK (Unity Modding Kit) v{VersionChecker.CurrentVersionString}");
         return (int)UmkExitCode.Success;
     }
 
     public static int PrintGeneralHelp()
     {
-        ConsoleLogger.WriteLineColored($"UMK — Unity Mod Kit v{VersionChecker.CurrentVersionString}", ConsoleColor.Cyan);
+        ConsoleLogger.WriteLineColored($"UMK — Unity Modding Kit v{VersionChecker.CurrentVersionString}", ConsoleColor.Cyan);
         Console.WriteLine("A CLI-only, shell-driven project configurator and task runner for Unity mod development.");
         Console.WriteLine();
         ConsoleLogger.WriteLineColored("USAGE:", ConsoleColor.Yellow);
         Console.WriteLine("  umk init                  Run interactive configuration wizard to generate umk.json");
         Console.WriteLine("  umk setup                 Reconfigure local game path & create libs\\ junctions on clone");
+        Console.WriteLine("  umk upgrade               Upgrade umk.json format version to match installed UMK tool");
         Console.WriteLine("  umk linkgamelibs          Link BepInEx, Unity, and game DLLs into .csproj via libs\\ junctions");
         Console.WriteLine("  umk <script>              Execute a named script from umk.json (e.g. build, run, clean)");
         Console.WriteLine("  umk <script> --dry-run    Display resolved shell commands without executing them");

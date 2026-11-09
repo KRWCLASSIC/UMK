@@ -46,6 +46,9 @@ umk init
 # Quick setup after git clone (reconfigures local game path & creates libs\ junctions)
 umk setup
 
+# Upgrade umk.json format version to match the installed UMK tool
+umk upgrade
+
 # Zero-copy game library linker (creates junctions in libs\ and references in .csproj)
 umk linkgamelibs
 
