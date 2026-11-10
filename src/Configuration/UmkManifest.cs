@@ -17,6 +17,7 @@ public sealed class UmkManifest
     public Dictionary<string, string> Variables { get; set; } = new(StringComparer.Ordinal);
 
     [JsonPropertyName("post-setup")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public List<string>? PostSetup { get; set; }
 
     [JsonPropertyName("scripts")]
