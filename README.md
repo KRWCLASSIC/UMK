@@ -61,6 +61,9 @@ umk <script>
 umk run --dry-run
 umk <script> --dry-run
 
+# Bypass UMK version mismatch check with umk.json
+umk build --ignore-umkv
+
 # Inspect available scripts and resolved variables
 umk list
 
@@ -100,12 +103,12 @@ The manifest defines project variables and executable scripts:
       "copy /Y \"${output}\\MyMod.dll\" \"${plugins}\""
     ],
     "build": [
-      "compile",
-      "copy"
+      "@compile",
+      "@copy"
     ],
     "run": [
-      "kill",
-      "build",
+      "@kill",
+      "@build",
       "start \"\" \"steam://rungameid/${steamId}\""
     ],
     "clean": [
@@ -121,10 +124,38 @@ The manifest defines project variables and executable scripts:
 - On Windows, forward slashes (`/`) in path variables are automatically normalized to backslashes (`\`) for shell compatibility.
 - Circular variable references are detected and rejected before execution.
 
+#### Advanced Dynamic Variables & Lazy Evaluation
+Variables are resolved **on-demand based on the execution cascade**: if you run `umk clean`, dynamic variables required only by `umk pack` are never triggered.
+
+- **Shell Command (`$[command:...]`):** Runs a shell command and captures its trimmed output.
+  ```json
+  "gitHash": "$[command:git rev-parse --short HEAD]"
+  ```
+- **Script-Backed (`$[script:...]`):** Executes a user-defined or private script and captures its standard output.
+  ```json
+  "version": "$[script:*version-checker]"
+  ```
+- **File Content (`$[file:...]` or `${file:...}`):** Reads raw text directly from disk.
+  ```json
+  "notes": "$[file:docs\\changelog.txt]"
+  ```
+- **Return / Exit Code (`$[exitcode:...]`):** Captures the return code of a command or script as an integer string (`"0"`, `"1"`):
+  ```json
+  "buildStatus": "$[exitcode:script:*test-build]"
+  ```
+
 ### Scripts
 - Sequential arrays of ordinary shell commands or references to other script keys.
-- Step references (e.g. `"build"` calling `"compile"` then `"copy"`) expand inline with cycle detection.
+- **Script References (`@` prefix):** Prefix a step with `@` to invoke another script inline (e.g. `"@compile"`, `"@copy"`, `"@*test"`). Lines without `@` are executed as raw shell commands, eliminating collisions with binaries or system utilities.
+- **Escaping:** Use `@@` if a literal shell command starts with `@`.
+- **Private Scripts (`*` prefix):** Prefixing a script definition with an asterisk (e.g. `"*modlessrun"`) marks it as private. Private scripts are hidden from `umk list` and cannot be called from the CLI, but can be referenced and chained inside other scripts via `@*name`.
 - Execution stops immediately on the first non-zero exit code (fail-fast).
+
+### Manifest Versioning & `--ignore-umkv`
+UMK validates that `umk.json`'s `"umk"` version matches the installed tool version:
+- If the project manifest is older than your tool: run `umk upgrade` to update `umk.json`.
+- If the project manifest requires a newer tool: run `dotnet tool update -g KRWCLASSIC.UMK`.
+- To bypass the version check entirely: pass `--ignore-umkv` (e.g. `umk build --ignore-umkv`).
 
 ---
 

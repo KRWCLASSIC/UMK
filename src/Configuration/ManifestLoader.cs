@@ -17,7 +17,7 @@ public static class ManifestLoader
         TypeInfoResolver = UmkJsonContext.Default
     };
 
-    public static UmkManifest Load(string? customPath = null)
+    public static UmkManifest Load(string? customPath = null, bool ignoreVersionMismatch = false)
     {
         string path = string.IsNullOrWhiteSpace(customPath)
             ? Path.Combine(Directory.GetCurrentDirectory(), DefaultFileName)
@@ -54,13 +54,13 @@ public static class ManifestLoader
             throw new UmkException($"Manifest file '{path}' deserialized to null.");
         }
 
-        Validate(manifest);
+        Validate(manifest, ignoreVersionMismatch);
         return manifest;
     }
 
     public static void Save(UmkManifest manifest, string? customPath = null)
     {
-        Validate(manifest);
+        Validate(manifest, ignoreVersionMismatch: true);
 
         string path = string.IsNullOrWhiteSpace(customPath)
             ? Path.Combine(Directory.GetCurrentDirectory(), DefaultFileName)
@@ -77,9 +77,9 @@ public static class ManifestLoader
         }
     }
 
-    public static void Validate(UmkManifest manifest)
+    public static void Validate(UmkManifest manifest, bool ignoreVersionMismatch = false)
     {
-        VersionChecker.ValidateCompatibility(manifest.Umk);
+        VersionChecker.ValidateVersionMatch(manifest.Umk, ignoreVersionMismatch);
 
         if (string.IsNullOrWhiteSpace(manifest.Name))
         {
@@ -122,4 +122,3 @@ public static class ManifestLoader
         }
     }
 }
-

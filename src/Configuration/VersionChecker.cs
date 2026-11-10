@@ -29,34 +29,50 @@ public static class VersionChecker
             return (new Version(asmVersion.Major, asmVersion.Minor, Math.Max(0, asmVersion.Build)), versionStr);
         }
 
-        return (new Version(0, 1, 0), "0.1.0");
+        return (new Version(0, 1, 3), "0.1.3");
     });
 
     public static Version CurrentVersion => CurrentVersionInfo.Value.Version;
     public static string CurrentVersionString => CurrentVersionInfo.Value.VersionString;
 
-    public static void ValidateCompatibility(string manifestUmkVersion)
+    public static void ValidateVersionMatch(string manifestUmkVersion, bool ignoreVersionMismatch = false)
     {
         if (string.IsNullOrWhiteSpace(manifestUmkVersion))
         {
             throw new UmkException("Manifest is missing the required 'umk' format version field.");
         }
 
-        if (!Version.TryParse(manifestUmkVersion.Trim(), out Version? manifestVersion))
+        if (ignoreVersionMismatch)
         {
-            throw new UmkException($"Invalid 'umk' version format '{manifestUmkVersion}'. Expected 'major.minor.patch' (e.g. '{CurrentVersionString}').");
+            return;
         }
 
-        if (manifestVersion.Major != CurrentVersion.Major)
+        string installedVersion = CurrentVersionString;
+        if (string.Equals(manifestUmkVersion.Trim(), installedVersion, StringComparison.OrdinalIgnoreCase))
         {
-            throw new UmkException(
-                $"Incompatible manifest version '{manifestUmkVersion}'. Installed UMK version is '{CurrentVersionString}' (major version mismatch).");
+            return;
         }
 
-        if (manifestVersion > CurrentVersion)
+        if (Version.TryParse(manifestUmkVersion.Trim(), out Version? manifestVer) &&
+            Version.TryParse(installedVersion, out Version? toolVer))
         {
-            throw new UmkException(
-                $"Manifest requires UMK version '{manifestUmkVersion}', but the installed UMK version is '{CurrentVersionString}'. Please update KRWCLASSIC.UMK.");
+            if (manifestVer < toolVer)
+            {
+                throw new UmkException(
+                    $"UMK version mismatch: project manifest umk.json is v{manifestUmkVersion}, but installed UMK is v{installedVersion}.\n" +
+                    $"Run 'umk upgrade' to update the project manifest, or bypass with '--ignore-umkv'.");
+            }
+
+            if (manifestVer > toolVer)
+            {
+                throw new UmkException(
+                    $"UMK version mismatch: project manifest umk.json requires v{manifestUmkVersion}, but installed UMK is v{installedVersion}.\n" +
+                    $"Update your UMK tool with 'dotnet tool update -g KRWCLASSIC.UMK', or bypass with '--ignore-umkv'.");
+            }
         }
+
+        throw new UmkException(
+            $"UMK version mismatch: project manifest umk.json is '{manifestUmkVersion}', but installed UMK is '{installedVersion}'.\n" +
+            $"Use '--ignore-umkv' to bypass this check.");
     }
 }

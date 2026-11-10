@@ -34,24 +34,36 @@ public static class Program
                     return InitWizard.Run(parsed.ManifestPath);
 
                 case CliCommandKind.Setup:
-                    return SetupCommand.Run(parsed.ManifestPath);
+                    return SetupCommand.Run(parsed.ManifestPath, parsed.IgnoreUmkVersion);
 
                 case CliCommandKind.Upgrade:
                     return UpgradeCommand.Run(parsed.ManifestPath);
 
                 case CliCommandKind.LinkGameLibs:
-                    return GameLibsLinker.Execute(parsed.ManifestPath);
+                    return GameLibsLinker.Execute(parsed.ManifestPath, parsed.IgnoreUmkVersion);
 
                 case CliCommandKind.List:
                 {
-                    UmkManifest manifest = ManifestLoader.Load(parsed.ManifestPath);
-                    return HelpPrinter.PrintScriptList(manifest);
+                    string? projectDir = !string.IsNullOrWhiteSpace(parsed.ManifestPath)
+                        ? Path.GetDirectoryName(Path.GetFullPath(parsed.ManifestPath))
+                        : null;
+                    UmkManifest manifest = ManifestLoader.Load(parsed.ManifestPath, parsed.IgnoreUmkVersion);
+                    return HelpPrinter.PrintScriptList(manifest, projectDir);
                 }
 
                 case CliCommandKind.RunScript:
                 {
-                    UmkManifest manifest = ManifestLoader.Load(parsed.ManifestPath);
-                    IReadOnlyDictionary<string, string> resolvedVars = VariableResolver.ResolveAll(manifest.Variables);
+                    string? projectDir = !string.IsNullOrWhiteSpace(parsed.ManifestPath)
+                        ? Path.GetDirectoryName(Path.GetFullPath(parsed.ManifestPath))
+                        : null;
+                    UmkManifest manifest = ManifestLoader.Load(parsed.ManifestPath, parsed.IgnoreUmkVersion);
+                    IReadOnlyDictionary<string, string> resolvedVars = VariableResolver.ResolveForScript(
+                        parsed.ScriptName!,
+                        manifest.Variables,
+                        manifest.Scripts,
+                        manifest.Shell,
+                        projectDir);
+
                     IReadOnlyList<ResolvedCommand> resolvedCommands = ScriptResolver.Resolve(
                         parsed.ScriptName!,
                         manifest.Scripts,

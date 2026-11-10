@@ -7,13 +7,13 @@ namespace UMK.Initialization;
 
 public static class SetupCommand
 {
-    public static int Run(string? customManifestPath = null)
+    public static int Run(string? customManifestPath = null, bool ignoreVersionMismatch = false)
     {
         string manifestPath = string.IsNullOrWhiteSpace(customManifestPath)
             ? Path.Combine(Directory.GetCurrentDirectory(), ManifestLoader.DefaultFileName)
             : Path.GetFullPath(customManifestPath);
 
-        UmkManifest manifest = ManifestLoader.Load(manifestPath);
+        UmkManifest manifest = ManifestLoader.Load(manifestPath, ignoreVersionMismatch);
         IReadOnlyDictionary<string, string> resolvedVars = VariableResolver.ResolveAll(manifest.Variables);
 
         string projectDir = Path.GetDirectoryName(manifestPath) ?? Directory.GetCurrentDirectory();

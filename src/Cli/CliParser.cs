@@ -12,6 +12,7 @@ public static class CliParser
         }
 
         bool dryRun = false;
+        bool ignoreUmkv = false;
         string? manifestPath = null;
         var positionals = new List<string>();
 
@@ -24,6 +25,10 @@ public static class CliParser
                 case "--dry-run":
                 case "-n":
                     dryRun = true;
+                    break;
+
+                case "--ignore-umkv":
+                    ignoreUmkv = true;
                     break;
 
                 case "--version":
@@ -90,7 +95,10 @@ public static class CliParser
                     "Unexpected arguments after 'init'. Usage: umk init",
                     UmkExitCode.UsageError);
             }
-            return new CliArguments(CliCommandKind.Init, ManifestPath: manifestPath);
+            return new CliArguments(
+                CliCommandKind.Init,
+                ManifestPath: manifestPath,
+                IgnoreUmkVersion: ignoreUmkv);
         }
 
         if (primary.Equals("setup", StringComparison.OrdinalIgnoreCase))
@@ -101,7 +109,10 @@ public static class CliParser
                     "Unexpected arguments after 'setup'. Usage: umk setup",
                     UmkExitCode.UsageError);
             }
-            return new CliArguments(CliCommandKind.Setup, ManifestPath: manifestPath);
+            return new CliArguments(
+                CliCommandKind.Setup,
+                ManifestPath: manifestPath,
+                IgnoreUmkVersion: ignoreUmkv);
         }
 
         if (primary.Equals("upgrade", StringComparison.OrdinalIgnoreCase))
@@ -112,7 +123,10 @@ public static class CliParser
                     "Unexpected arguments after 'upgrade'. Usage: umk upgrade",
                     UmkExitCode.UsageError);
             }
-            return new CliArguments(CliCommandKind.Upgrade, ManifestPath: manifestPath);
+            return new CliArguments(
+                CliCommandKind.Upgrade,
+                ManifestPath: manifestPath,
+                IgnoreUmkVersion: ignoreUmkv);
         }
 
         if (primary.Equals("list", StringComparison.OrdinalIgnoreCase))
@@ -123,7 +137,10 @@ public static class CliParser
                     "Unexpected arguments after 'list'. Usage: umk list",
                     UmkExitCode.UsageError);
             }
-            return new CliArguments(CliCommandKind.List, ManifestPath: manifestPath);
+            return new CliArguments(
+                CliCommandKind.List,
+                ManifestPath: manifestPath,
+                IgnoreUmkVersion: ignoreUmkv);
         }
 
         if (primary.Equals("linkgamelibs", StringComparison.OrdinalIgnoreCase) ||
@@ -135,7 +152,10 @@ public static class CliParser
                     $"Unexpected arguments after '{primary}'. Usage: umk linkgamelibs",
                     UmkExitCode.UsageError);
             }
-            return new CliArguments(CliCommandKind.LinkGameLibs, ManifestPath: manifestPath);
+            return new CliArguments(
+                CliCommandKind.LinkGameLibs,
+                ManifestPath: manifestPath,
+                IgnoreUmkVersion: ignoreUmkv);
         }
 
         if (positionals.Count > 1)
@@ -149,7 +169,7 @@ public static class CliParser
             CliCommandKind.RunScript,
             ScriptName: primary,
             DryRun: dryRun,
-            ManifestPath: manifestPath);
+            ManifestPath: manifestPath,
+            IgnoreUmkVersion: ignoreUmkv);
     }
 }
-

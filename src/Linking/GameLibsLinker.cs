@@ -47,9 +47,9 @@ public static partial class GameLibsLinker
     [GeneratedRegex(@"([^\s""']+\.csproj)", RegexOptions.IgnoreCase)]
     private static partial Regex CsprojInScriptRegex();
 
-    public static int Execute(string? customManifestPath = null)
+    public static int Execute(string? customManifestPath = null, bool ignoreVersionMismatch = false)
     {
-        UmkManifest manifest = ManifestLoader.Load(customManifestPath);
+        UmkManifest manifest = ManifestLoader.Load(customManifestPath, ignoreVersionMismatch);
         IReadOnlyDictionary<string, string> resolvedVars = VariableResolver.ResolveAll(manifest.Variables);
 
         if (!resolvedVars.TryGetValue("game", out string? gameDir) || string.IsNullOrWhiteSpace(gameDir))

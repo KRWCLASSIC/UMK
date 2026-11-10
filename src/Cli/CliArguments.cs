@@ -18,4 +18,5 @@ public sealed record CliArguments(
     CliCommandKind Kind,
     string? ScriptName = null,
     bool DryRun = false,
-    string? ManifestPath = null);
+    string? ManifestPath = null,
+    bool IgnoreUmkVersion = false);

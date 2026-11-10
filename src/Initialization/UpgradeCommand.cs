@@ -11,12 +11,27 @@ public static class UpgradeCommand
             ? Path.Combine(Directory.GetCurrentDirectory(), ManifestLoader.DefaultFileName)
             : Path.GetFullPath(customManifestPath);
 
-        UmkManifest manifest = ManifestLoader.Load(manifestPath);
+        UmkManifest manifest = ManifestLoader.Load(manifestPath, ignoreVersionMismatch: true);
 
         string currentTarget = VersionChecker.CurrentVersionString;
         string manifestVersion = manifest.Umk;
+        bool versionChanged = !string.Equals(manifestVersion.Trim(), currentTarget, StringComparison.OrdinalIgnoreCase);
 
-        if (string.Equals(manifestVersion.Trim(), currentTarget, StringComparison.OrdinalIgnoreCase))
+        int migratedReferences = 0;
+        foreach (var steps in manifest.Scripts.Values)
+        {
+            for (int i = 0; i < steps.Count; i++)
+            {
+                string trimmed = steps[i].Trim();
+                if (!trimmed.StartsWith('@') && !trimmed.StartsWith("@@") && manifest.Scripts.ContainsKey(trimmed))
+                {
+                    steps[i] = "@" + trimmed;
+                    migratedReferences++;
+                }
+            }
+        }
+
+        if (!versionChanged && migratedReferences == 0)
         {
             ConsoleLogger.Info($"Manifest '{Path.GetFileName(manifestPath)}' is already up to date (format version {currentTarget}).");
             return (int)UmkExitCode.Success;
@@ -25,8 +40,18 @@ public static class UpgradeCommand
         manifest.Umk = currentTarget;
         ManifestLoader.Save(manifest, manifestPath);
 
-        ConsoleLogger.Success(
-            $"Upgraded '{Path.GetFileName(manifestPath)}' from v{manifestVersion} to v{currentTarget}.");
+        if (versionChanged)
+        {
+            ConsoleLogger.Success(
+                $"Upgraded '{Path.GetFileName(manifestPath)}' from v{manifestVersion} to v{currentTarget}.");
+        }
+
+        if (migratedReferences > 0)
+        {
+            ConsoleLogger.Info(
+                $"Migrated {migratedReferences} script reference(s) to '@script' prefix syntax.");
+        }
+
         return (int)UmkExitCode.Success;
     }
 }

@@ -229,8 +229,8 @@ public static partial class InitWizard
             ["kill"] = [killCommand],
             ["compile"] = [$"dotnet build {csprojFile} -c ${{configuration}}"],
             ["copy"] = [copyCommand],
-            ["build"] = ["compile", "copy"],
-            ["run"] = ["kill", "build", launchCommand],
+            ["build"] = ["@compile", "@copy"],
+            ["run"] = ["@kill", "@build", launchCommand],
             ["clean"] = ["dotnet clean"]
         };
 
