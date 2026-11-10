@@ -29,7 +29,7 @@ public static class VersionChecker
             return (new Version(asmVersion.Major, asmVersion.Minor, Math.Max(0, asmVersion.Build)), versionStr);
         }
 
-        return (new Version(0, 1, 3), "0.1.3");
+        return (new Version(0, 1, 4), "0.1.4");
     });
 
     public static Version CurrentVersion => CurrentVersionInfo.Value.Version;

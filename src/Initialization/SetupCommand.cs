@@ -1,5 +1,6 @@
 using UMK.Configuration;
 using UMK.Diagnostics;
+using UMK.Execution;
 using UMK.Linking;
 using UMK.Resolution;
 
@@ -14,14 +15,12 @@ public static class SetupCommand
             : Path.GetFullPath(customManifestPath);
 
         UmkManifest manifest = ManifestLoader.Load(manifestPath, ignoreVersionMismatch);
-        IReadOnlyDictionary<string, string> resolvedVars = VariableResolver.ResolveAll(manifest.Variables);
-
         string projectDir = Path.GetDirectoryName(manifestPath) ?? Directory.GetCurrentDirectory();
 
         ConsoleLogger.Info($"UMK Project Setup — {manifest.Name}");
         Console.WriteLine();
 
-        string? currentGameDir = resolvedVars.TryGetValue("game", out string? gVal) ? gVal : null;
+        manifest.Variables.TryGetValue("game", out string? currentGameDir);
         manifest.Variables.TryGetValue("steamId", out string? steamId);
 
         string targetGameDir = string.Empty;
@@ -93,6 +92,35 @@ public static class SetupCommand
         // Create directory junctions without modifying .csproj
         Console.WriteLine();
         GameLibsLinker.EnsureJunctions(projectDir, targetGameDir);
+
+        if (manifest.PostSetup is { Count: > 0 })
+        {
+            Console.WriteLine();
+            var postSetupVars = VariableResolver.ResolveForSteps(
+                manifest.PostSetup,
+                manifest.Variables,
+                manifest.Scripts,
+                manifest.Shell,
+                projectDir);
+
+            var resolvedSteps = ScriptResolver.ResolveStepList(
+                "post-setup",
+                manifest.PostSetup,
+                manifest.Scripts,
+                postSetupVars);
+
+            int exitCode = ShellExecutor.Execute(
+                "post-setup",
+                manifest.Shell,
+                resolvedSteps,
+                dryRun: false,
+                workingDirectory: projectDir);
+
+            if (exitCode != (int)UmkExitCode.Success)
+            {
+                return exitCode;
+            }
+        }
 
         ConsoleLogger.Success($"Project setup complete! Directory junctions in 'libs\\' are ready.");
         Console.WriteLine("You can now build with 'umk build'.");

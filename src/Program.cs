@@ -73,7 +73,8 @@ public static class Program
                         parsed.ScriptName!,
                         manifest.Shell,
                         resolvedCommands,
-                        parsed.DryRun);
+                        parsed.DryRun,
+                        projectDir);
                 }
 
                 default:

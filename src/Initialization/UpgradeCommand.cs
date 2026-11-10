@@ -31,6 +31,19 @@ public static class UpgradeCommand
             }
         }
 
+        if (manifest.PostSetup != null)
+        {
+            for (int i = 0; i < manifest.PostSetup.Count; i++)
+            {
+                string trimmed = manifest.PostSetup[i].Trim();
+                if (!trimmed.StartsWith('@') && !trimmed.StartsWith("@@") && manifest.Scripts.ContainsKey(trimmed))
+                {
+                    manifest.PostSetup[i] = "@" + trimmed;
+                    migratedReferences++;
+                }
+            }
+        }
+
         if (!versionChanged && migratedReferences == 0)
         {
             ConsoleLogger.Info($"Manifest '{Path.GetFileName(manifestPath)}' is already up to date (format version {currentTarget}).");

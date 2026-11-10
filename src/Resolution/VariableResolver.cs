@@ -36,6 +36,31 @@ public static partial class VariableResolver
         return resolved;
     }
 
+    public static IReadOnlyDictionary<string, string> ResolveForSteps(
+        IReadOnlyList<string> steps,
+        IReadOnlyDictionary<string, string> rawVariables,
+        IReadOnlyDictionary<string, List<string>> scripts,
+        string shell = "cmd",
+        string? workingDirectory = null)
+    {
+        var rawCommands = ScriptResolver.CollectRawCommandsForSteps(steps, scripts);
+        var requiredVariables = new HashSet<string>(StringComparer.Ordinal);
+        foreach (string cmd in rawCommands)
+        {
+            CollectVariableReferences(cmd, rawVariables, requiredVariables);
+        }
+
+        var resolved = new Dictionary<string, string>(StringComparer.Ordinal);
+        var callStack = new List<string>();
+
+        foreach (string key in requiredVariables)
+        {
+            ResolveSingle(key, rawVariables, scripts, resolved, callStack, shell, workingDirectory);
+        }
+
+        return resolved;
+    }
+
     public static IReadOnlyDictionary<string, string> ResolveAll(
         IReadOnlyDictionary<string, string> rawVariables,
         IReadOnlyDictionary<string, List<string>>? scripts = null,

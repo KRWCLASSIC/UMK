@@ -10,7 +10,8 @@ public static class ShellExecutor
         string targetScript,
         string shell,
         IReadOnlyList<ResolvedCommand> commands,
-        bool dryRun)
+        bool dryRun,
+        string? workingDirectory = null)
     {
         string normalizedShell = shell.Trim().ToLowerInvariant();
         if (normalizedShell is not ("cmd" or "powershell"))
@@ -18,15 +19,18 @@ public static class ShellExecutor
             throw new UmkException($"Unsupported shell '{shell}'. Expected 'cmd' or 'powershell'.");
         }
 
+        bool isPostSetup = targetScript.Equals("post-setup", StringComparison.OrdinalIgnoreCase);
+        string displayLabel = isPostSetup ? "post-setup tasks" : $"script '{targetScript}'";
+
         if (commands.Count == 0)
         {
-            ConsoleLogger.Warn($"Script '{targetScript}' resolved to 0 commands.");
+            ConsoleLogger.Warn($"{char.ToUpperInvariant(displayLabel[0])}{displayLabel[1..]} resolved to 0 commands.");
             return (int)UmkExitCode.Success;
         }
 
         if (dryRun)
         {
-            ConsoleLogger.Info($"Dry run for script '{targetScript}' (shell: {normalizedShell}, {commands.Count} command(s)):");
+            ConsoleLogger.Info($"Dry run for {displayLabel} (shell: {normalizedShell}, {commands.Count} command(s)):");
             foreach (ResolvedCommand cmd in commands)
             {
                 ConsoleLogger.Step(cmd.ScriptName, cmd.Command, isDryRun: true);
@@ -34,13 +38,13 @@ public static class ShellExecutor
             return (int)UmkExitCode.Success;
         }
 
-        ConsoleLogger.Info($"Running script '{targetScript}' (shell: {normalizedShell})...");
+        ConsoleLogger.Info($"Running {displayLabel} (shell: {normalizedShell})...");
 
         foreach (ResolvedCommand cmd in commands)
         {
             ConsoleLogger.Step(cmd.ScriptName, cmd.Command, isDryRun: false);
 
-            int exitCode = RunProcess(normalizedShell, cmd.Command);
+            int exitCode = RunProcess(normalizedShell, cmd.Command, workingDirectory);
             if (exitCode != 0)
             {
                 ConsoleLogger.Error(
@@ -49,7 +53,7 @@ public static class ShellExecutor
             }
         }
 
-        ConsoleLogger.Success($"Script '{targetScript}' finished successfully.");
+        ConsoleLogger.Success($"{char.ToUpperInvariant(displayLabel[0])}{displayLabel[1..]} finished successfully.");
         return (int)UmkExitCode.Success;
     }
 
@@ -148,7 +152,7 @@ public static class ShellExecutor
         }
     }
 
-    private static int RunProcess(string normalizedShell, string command)
+    private static int RunProcess(string normalizedShell, string command, string? workingDirectory = null)
     {
         ProcessStartInfo startInfo = normalizedShell switch
         {
@@ -156,6 +160,11 @@ public static class ShellExecutor
             "powershell" => CreatePowerShellStartInfo(command),
             _ => throw new UmkException($"Unsupported shell '{normalizedShell}'.")
         };
+
+        if (!string.IsNullOrWhiteSpace(workingDirectory))
+        {
+            startInfo.WorkingDirectory = workingDirectory;
+        }
 
         try
         {

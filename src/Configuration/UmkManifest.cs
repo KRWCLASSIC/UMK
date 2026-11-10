@@ -16,6 +16,9 @@ public sealed class UmkManifest
     [JsonPropertyName("variables")]
     public Dictionary<string, string> Variables { get; set; } = new(StringComparer.Ordinal);
 
+    [JsonPropertyName("post-setup")]
+    public List<string>? PostSetup { get; set; }
+
     [JsonPropertyName("scripts")]
     public Dictionary<string, List<string>> Scripts { get; set; } = new(StringComparer.Ordinal);
 }

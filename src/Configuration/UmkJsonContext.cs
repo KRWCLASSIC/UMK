@@ -9,6 +9,7 @@ namespace UMK.Configuration;
     AllowTrailingCommas = true,
     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
 [JsonSerializable(typeof(UmkManifest))]
+[JsonSerializable(typeof(List<string>))]
 [JsonSerializable(typeof(Dictionary<string, string>))]
 [JsonSerializable(typeof(Dictionary<string, List<string>>))]
 public partial class UmkJsonContext : JsonSerializerContext

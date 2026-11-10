@@ -139,6 +139,31 @@ public static class HelpPrinter
 
         var publicScripts = manifest.Scripts.Where(s => !ScriptResolver.IsPrivateScript(s.Key)).ToList();
 
+        if (manifest.PostSetup is { Count: > 0 })
+        {
+            ConsoleLogger.WriteLineColored("Post-Setup Tasks (run on 'umk setup'):", ConsoleColor.Yellow);
+            foreach (string step in manifest.PostSetup)
+            {
+                string trimmed = step.Trim();
+                bool isExplicitScript = trimmed.StartsWith('@') && !trimmed.StartsWith("@@");
+                bool isLegacyScript = manifest.Scripts.ContainsKey(trimmed);
+
+                if (isExplicitScript || isLegacyScript)
+                {
+                    string target = isExplicitScript ? trimmed[1..].Trim() : trimmed;
+                    ConsoleLogger.WriteColored("    -> [script] ", ConsoleColor.DarkCyan);
+                    Console.WriteLine($"@{target}");
+                }
+                else
+                {
+                    string displayCmd = trimmed.StartsWith("@@") ? step.Replace("@@", "@") : step;
+                    ConsoleLogger.WriteColored("    $  ", ConsoleColor.DarkGray);
+                    Console.WriteLine(displayCmd);
+                }
+            }
+            Console.WriteLine();
+        }
+
         ConsoleLogger.WriteLineColored("Available Scripts:", ConsoleColor.Yellow);
         if (publicScripts.Count == 0)
         {

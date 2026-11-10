@@ -151,6 +151,31 @@ Variables are resolved **on-demand based on the execution cascade**: if you run 
 - **Private Scripts (`*` prefix):** Prefixing a script definition with an asterisk (e.g. `"*modlessrun"`) marks it as private. Private scripts are hidden from `umk list` and cannot be called from the CLI, but can be referenced and chained inside other scripts via `@*name`.
 - Execution stops immediately on the first non-zero exit code (fail-fast).
 
+### Post-Setup Tasks (`"post-setup"`)
+Automate initialization tasks directly after `umk setup` creates the `libs\` junctions (e.g. downloading native binaries, pulling submodules, generating local files, or chaining scripts via `@`):
+
+```json
+{
+  "umk": "0.1.4",
+  "name": "MyMod",
+  "shell": "cmd",
+  "variables": {
+    "game": "E:\\Games\\MyGame"
+  },
+  "post-setup": [
+    "echo Preparing additional assets...",
+    "@*download-extras"
+  ],
+  "scripts": {
+    "*download-extras": [
+      "powershell -Command \"Invoke-WebRequest -Uri 'https://example.com/extras.zip' -OutFile 'extras.zip'\""
+    ]
+  }
+}
+```
+
+When you run `umk setup`, it configures the game directory, links `libs\`, and then executes all steps in `"post-setup"` with full variable interpolation and fail-fast guarantees.
+
 ### Manifest Versioning & `--ignore-umkv`
 UMK validates that `umk.json`'s `"umk"` version matches the installed tool version:
 - If the project manifest is older than your tool: run `umk upgrade` to update `umk.json`.

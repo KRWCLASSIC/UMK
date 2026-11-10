@@ -36,6 +36,64 @@ public static class ScriptResolver
         return commands;
     }
 
+    public static IReadOnlyList<ResolvedCommand> ResolveStepList(
+        string contextName,
+        IReadOnlyList<string> steps,
+        IReadOnlyDictionary<string, List<string>> scripts,
+        IReadOnlyDictionary<string, string> resolvedVariables)
+    {
+        var commands = new List<ResolvedCommand>();
+        var callStack = new List<string> { contextName };
+
+        for (int i = 0; i < steps.Count; i++)
+        {
+            string rawEntry = steps[i];
+            if (string.IsNullOrWhiteSpace(rawEntry))
+            {
+                continue;
+            }
+
+            string trimmedEntry = rawEntry.Trim();
+
+            if (trimmedEntry.StartsWith("@@"))
+            {
+                string literalCommand = rawEntry.Replace("@@", "@");
+                string interpolated = VariableResolver.Interpolate(
+                    literalCommand,
+                    resolvedVariables,
+                    $"{contextName} (step {i + 1})");
+
+                commands.Add(new ResolvedCommand(contextName, interpolated));
+            }
+            else if (trimmedEntry.StartsWith('@'))
+            {
+                string targetScriptName = trimmedEntry[1..].Trim();
+                if (!scripts.ContainsKey(targetScriptName))
+                {
+                    throw new UmkException(
+                        $"{contextName} references undefined script '@{targetScriptName}'.");
+                }
+
+                ExpandScript(targetScriptName, scripts, resolvedVariables, commands, callStack);
+            }
+            else if (scripts.ContainsKey(trimmedEntry))
+            {
+                ExpandScript(trimmedEntry, scripts, resolvedVariables, commands, callStack);
+            }
+            else
+            {
+                string interpolated = VariableResolver.Interpolate(
+                    rawEntry,
+                    resolvedVariables,
+                    $"{contextName} (step {i + 1})");
+
+                commands.Add(new ResolvedCommand(contextName, interpolated));
+            }
+        }
+
+        return commands;
+    }
+
     public static IReadOnlyList<ResolvedCommand> ResolveInternalScript(
         string targetScript,
         IReadOnlyDictionary<string, List<string>> scripts,
@@ -62,6 +120,46 @@ public static class ScriptResolver
         var callStack = new List<string>();
 
         CollectInternal(targetScript, scripts, commands, callStack);
+
+        return commands;
+    }
+
+    public static IReadOnlyList<string> CollectRawCommandsForSteps(
+        IReadOnlyList<string> steps,
+        IReadOnlyDictionary<string, List<string>> scripts)
+    {
+        var commands = new List<string>();
+        var callStack = new List<string>();
+
+        foreach (string entry in steps)
+        {
+            if (string.IsNullOrWhiteSpace(entry))
+            {
+                continue;
+            }
+
+            string trimmed = entry.Trim();
+            if (trimmed.StartsWith("@@"))
+            {
+                commands.Add(entry.Replace("@@", "@"));
+            }
+            else if (trimmed.StartsWith('@'))
+            {
+                string target = trimmed[1..].Trim();
+                if (scripts.ContainsKey(target))
+                {
+                    CollectInternal(target, scripts, commands, callStack);
+                }
+            }
+            else if (scripts.ContainsKey(trimmed))
+            {
+                CollectInternal(trimmed, scripts, commands, callStack);
+            }
+            else
+            {
+                commands.Add(entry);
+            }
+        }
 
         return commands;
     }
